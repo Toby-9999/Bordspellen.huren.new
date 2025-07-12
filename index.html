@@ -42,14 +42,13 @@
     button:hover {
       background: #45a049;
     }
-    .success {
-      color: green;
+    .info, .success, .error {
       text-align: center;
+      margin-top: 1em;
     }
-    .error {
-      color: red;
-      text-align: center;
-    }
+    .info { color: #333; }
+    .success { color: green; }
+    .error { color: red; }
   </style>
 </head>
 <body>
@@ -67,41 +66,68 @@
       <option>Uno</option>
     </select>
 
-    <label>Van (datum):</label>
-    <input name="van" type="date" required />
-    <label>Tot (datum):</label>
-    <input name="tot" type="date" required />
+    <label>Startdatum:</label>
+    <input name="start" type="date" required />
+
+    <label>Aantal weken:</label>
+    <input name="weken" type="number" min="1" max="12" required />
+
+    <div id="einddatumTekst" class="info"></div>
 
     <button type="submit">Verstuur reservering</button>
     <p id="melding"></p>
   </form>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzTl4DiWDIdK1IoT3P3gAwo7Qaln5w4chb_OwFyxWlz6AG7kO0D7vGhgleA1t0niFFhKw/exec";
     const form = document.getElementById("reserveringForm");
+    const einddatumTekst = document.getElementById("einddatumTekst");
     const melding = document.getElementById("melding");
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzTl4DiWDIdK1IoT3P3gAwo7Qaln5w4chb_OwFyxWlz6AG7kO0D7vGhgleA1t0niFFhKw/exec";
+
+    function updateEinddatum() {
+      const start = new Date(form.start.value);
+      const weken = parseInt(form.weken.value);
+      if (!isNaN(start.getTime()) && weken > 0) {
+        const eind = new Date(start);
+        eind.setDate(eind.getDate() + weken * 7);
+        einddatumTekst.textContent = `👉 Einddatum: ${eind.toLocaleDateString()}`;
+      } else {
+        einddatumTekst.textContent = "";
+      }
+    }
+
+    form.start.addEventListener("input", updateEinddatum);
+    form.weken.addEventListener("input", updateEinddatum);
 
     form.addEventListener("submit", e => {
       e.preventDefault();
       melding.textContent = "⏳ Verzenden...";
       melding.className = "";
 
+      const formData = new FormData(form);
+      const start = new Date(form.start.value);
+      const weken = parseInt(form.weken.value);
+      const eind = new Date(start);
+      eind.setDate(eind.getDate() + weken * 7);
+      formData.append("einddatum", eind.toISOString().split("T")[0]);
+
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
-        body: new FormData(form)
+        body: formData
       })
       .then(() => {
         melding.textContent = "✅ Succesvol verzonden!";
         melding.className = "success";
         form.reset();
+        einddatumTekst.textContent = "";
       })
-      .catch(error => {
-        console.error("Fout:", error);
-        melding.textContent = "❌ Er is iets misgelopen.";
+      .catch(() => {
+        melding.textContent = "❌ Er ging iets mis.";
         melding.className = "error";
       });
     });
   </script>
 </body>
 </html>
+
