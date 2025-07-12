@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Boardgames Verhuur</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 2em;
+    }
+    form {
+      background: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1em;
+      padding: 0.75em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .success {
+      color: green;
+      text-align: center;
+    }
+    .error {
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <form id="reserveringForm">
+    <h2>Reserveer een bordspel</h2>
+
+    <input name="naam" placeholder="Jouw naam" required />
+    <input name="email" type="email" placeholder="E-mail" required />
+
+    <select name="spel" required>
+      <option value="" disabled selected>Selecteer een spel</option>
+      <option>Ticket to Ride</option>
+      <option>Catan</option>
+      <option>30 Seconds</option>
+      <option>Uno</option>
+    </select>
+
+    <label>Van (datum):</label>
+    <input name="van" type="date" required />
+    <label>Tot (datum):</label>
+    <input name="tot" type="date" required />
+
+    <button type="submit">Verstuur reservering</button>
+    <p id="melding"></p>
+  </form>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzTl4DiWDIdK1IoT3P3gAwo7Qaln5w4chb_OwFyxWlz6AG7kO0D7vGhgleA1t0niFFhKw/exec";
+    const form = document.getElementById("reserveringForm");
+    const melding = document.getElementById("melding");
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      melding.textContent = "⏳ Verzenden...";
+      melding.className = "";
+
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new FormData(form)
+      })
+      .then(() => {
+        melding.textContent = "✅ Succesvol verzonden!";
+        melding.className = "success";
+        form.reset();
+      })
+      .catch(error => {
+        console.error("Fout:", error);
+        melding.textContent = "❌ Er is iets misgelopen.";
+        melding.className = "error";
+      });
+    });
+  </script>
+</body>
+</html>
